@@ -44,7 +44,6 @@ async def mem0_lifespan(server: FastMCP) -> AsyncIterator[Mem0Context]:
 # Initialize FastMCP server with the Mem0 client as context
 mcp = FastMCP(
     "mcp-mem0",
-    description="MCP server for long term memory storage and retrieval with Mem0",
     lifespan=mem0_lifespan,
     host=os.getenv("HOST", "0.0.0.0"),
     port=os.getenv("PORT", "8050")

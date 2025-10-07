@@ -26,7 +26,7 @@ The server provides three essential memory management tools:
 
 - Python 3.12+
 - Supabase or any PostgreSQL database (for vector storage of memories)
-- API keys for your chosen LLM provider (OpenAI, OpenRouter, or Ollama)
+- API keys for your chosen LLM provider (OpenAI, OpenRouter, GitHub Copilot, or Ollama)
 - Docker if running the MCP server as a container (recommended)
 
 ## Installation
@@ -74,12 +74,39 @@ The following environment variables can be configured in your `.env` file:
 | `TRANSPORT` | Transport protocol (sse or stdio) | `sse` |
 | `HOST` | Host to bind to when using SSE transport | `0.0.0.0` |
 | `PORT` | Port to listen on when using SSE transport | `8050` |
-| `LLM_PROVIDER` | LLM provider (openai, openrouter, or ollama) | `openai` |
+| `LLM_PROVIDER` | LLM provider (openai, openrouter, ollama, or github_copilot) | `openai` |
 | `LLM_BASE_URL` | Base URL for the LLM API | `https://api.openai.com/v1` |
 | `LLM_API_KEY` | API key for the LLM provider | `sk-...` |
 | `LLM_CHOICE` | LLM model to use | `gpt-4o-mini` |
 | `EMBEDDING_MODEL_CHOICE` | Embedding model to use | `text-embedding-3-small` |
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:port/db` |
+
+## Provider Setup
+
+### GitHub Copilot
+
+GitHub Copilot models work through LiteLLM's direct integration - no API keys or authentication needed!
+
+**Setting up GitHub Copilot:**
+
+Simply configure your environment:
+```bash
+LLM_PROVIDER=github_copilot
+LLM_API_KEY=
+LLM_BASE_URL=
+LLM_CHOICE=github_copilot/gpt-4o-mini
+EMBEDDING_MODEL_CHOICE=github_copilot/text-embedding-3-small
+```
+
+**Available Models:**
+- Chat: `github_copilot/gpt-4o`, `github_copilot/gpt-4o-mini`, `github_copilot/claude-3-5-sonnet`
+- Embeddings: `github_copilot/text-embedding-3-small`, `github_copilot/text-embedding-3-large`
+
+### Other Providers
+
+- **OpenAI**: Use your OpenAI API key with models like `gpt-4o-mini`, `text-embedding-3-small`
+- **OpenRouter**: Get an API key from OpenRouter and use models like `anthropic/claude-3-5-sonnet`
+- **Ollama**: Run models locally, no API key needed
 
 ## Running the Server
 

@@ -1,5 +1,6 @@
 from mem0 import Memory
 import os
+import litellm
 
 # Custom instructions for memory processing
 # These aren't being used right now but Mem0 does support adding custom prompting
@@ -43,6 +44,16 @@ def get_mem0_client():
         if llm_provider == 'openrouter' and llm_api_key:
             os.environ["OPENROUTER_API_KEY"] = llm_api_key
     
+    elif llm_provider == 'github_copilot':
+        config["llm"] = {
+            "provider": "litellm",
+            "config": {
+                "model": llm_model or "github_copilot/gpt-4o",
+                "temperature": 0.2,
+                "max_tokens": 2000,
+            }
+        }
+    
     elif llm_provider == 'ollama':
         config["llm"] = {
             "provider": "ollama",
@@ -72,6 +83,15 @@ def get_mem0_client():
         if llm_api_key and not os.environ.get("OPENAI_API_KEY"):
             os.environ["OPENAI_API_KEY"] = llm_api_key
     
+    elif llm_provider == 'github_copilot':
+        config["embedder"] = {
+            "provider": "github_copilot",
+            "config": {
+                "model": embedding_model or "github_copilot/text-embedding-3-small",
+                "embedding_dims": 1536,  # Default for text-embedding-3-small
+            }
+        }
+    
     elif llm_provider == 'ollama':
         config["embedder"] = {
             "provider": "ollama",
@@ -87,12 +107,18 @@ def get_mem0_client():
             config["embedder"]["config"]["ollama_base_url"] = embedding_base_url
     
     # Configure Supabase vector store
+    embedding_dims = 1536  # Default
+    if llm_provider == "openai" or llm_provider == "github_copilot":
+        embedding_dims = 1536
+    elif llm_provider == "ollama":
+        embedding_dims = 768
+    
     config["vector_store"] = {
         "provider": "supabase",
         "config": {
             "connection_string": os.environ.get('DATABASE_URL', ''),
             "collection_name": "mem0_memories",
-            "embedding_model_dims": 1536 if llm_provider == "openai" else 768
+            "embedding_model_dims": embedding_dims
         }
     }
 
