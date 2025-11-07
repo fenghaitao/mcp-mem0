@@ -10,7 +10,7 @@ import os
 
 from utils import get_mem0_client
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Default user ID for memory operations
 DEFAULT_USER_ID = "user"
