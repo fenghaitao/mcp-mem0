@@ -14,6 +14,7 @@ dependencies = [
     "vecs>=0.4.5",
     "openai>=1.90.0",
     "python-dotenv>=1.0.1",
+    "qdrant-client>=1.15.1",
     "mem0ai @ git+https://github.com/fenghaitao/mem0.git",
     "litellm @ git+https://github.com/fenghaitao/litellm.git"
 ]

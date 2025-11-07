@@ -106,21 +106,37 @@ def get_mem0_client():
         if embedding_base_url:
             config["embedder"]["config"]["ollama_base_url"] = embedding_base_url
     
-    # Configure Supabase vector store
+    # Configure vector store (Qdrant or Supabase)
     embedding_dims = 1536  # Default
     if llm_provider == "openai" or llm_provider == "github_copilot":
         embedding_dims = 1536
     elif llm_provider == "ollama":
         embedding_dims = 768
     
-    config["vector_store"] = {
-        "provider": "supabase",
-        "config": {
-            "connection_string": os.environ.get('DATABASE_URL', ''),
-            "collection_name": "mem0_memories",
-            "embedding_model_dims": embedding_dims
+    # Check which vector store to use
+    vector_store_provider = os.getenv('VECTOR_STORE_PROVIDER', 'supabase')
+    
+    if vector_store_provider == 'qdrant':
+        # Configure Qdrant vector store
+        config["vector_store"] = {
+            "provider": "qdrant",
+            "config": {
+                "collection_name": os.getenv('QDRANT_COLLECTION_NAME', 'mem0_memories'),
+                "embedding_model_dims": embedding_dims,
+                "url": os.getenv('QDRANT_URL'),
+                "api_key": os.getenv('QDRANT_API_KEY'),
+            }
         }
-    }
+    else:
+        # Configure Supabase vector store (default)
+        config["vector_store"] = {
+            "provider": "supabase",
+            "config": {
+                "connection_string": os.environ.get('DATABASE_URL', ''),
+                "collection_name": "mem0_memories",
+                "embedding_model_dims": embedding_dims
+            }
+        }
 
     # config["custom_fact_extraction_prompt"] = CUSTOM_INSTRUCTIONS
     
