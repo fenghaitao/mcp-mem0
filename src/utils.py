@@ -115,6 +115,7 @@ def get_mem0_client():
     
     # Check which vector store to use
     vector_store_provider = os.getenv('VECTOR_STORE_PROVIDER', 'supabase')
+    print(f"[MEM0] Using vector store provider: {vector_store_provider}")
     
     if vector_store_provider == 'qdrant':
         # Configure Qdrant vector store
