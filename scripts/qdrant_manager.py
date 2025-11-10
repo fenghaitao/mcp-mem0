@@ -13,6 +13,8 @@ Usage:
     python qdrant_manager.py collection-info --collection-name mem0_memories
     python qdrant_manager.py count-vectors --collection-name mem0_memories
     python qdrant_manager.py clear-collection --collection-name mem0_memories
+    python qdrant_manager.py get-all-memories --format json
+    python qdrant_manager.py test-connection
 """
 
 import argparse
@@ -233,6 +235,80 @@ def clear_collection(args):
     except Exception as e:
         print(f"❌ Error clearing collection: {e}")
 
+def get_all_memories(args):
+    """Get all stored memories from mem0.
+    
+    This function retrieves all memories for the default user and displays them
+    in JSON format. It uses the mem0 client configured with Qdrant backend.
+    """
+    config = load_env_config()
+    
+    # Import here to avoid circular imports
+    try:
+        from utils import get_mem0_client
+    except ImportError:
+        print("❌ Error: Could not import utils module. Make sure you're running from the correct directory.")
+        return
+    
+    # Default user ID for memory operations (same as main.py)
+    DEFAULT_USER_ID = "user"
+    
+    print("Retrieving all memories from mem0...")
+    print(f"Collection: {config['collection_name']}")
+    print(f"LLM Provider: {config['llm_provider']}")
+    
+    try:
+        # Create mem0 client using the same configuration as main.py
+        mem0_client = get_mem0_client()
+        
+        # Get all memories for the default user
+        memories = mem0_client.get_all(user_id=DEFAULT_USER_ID)
+        
+        # Process the memories - handle both response formats
+        if isinstance(memories, dict) and "results" in memories:
+            memories_list = memories["results"]
+        elif isinstance(memories, list):
+            memories_list = memories
+        else:
+            memories_list = []
+            
+        print(f"✅ Retrieved {len(memories_list)} memories")
+        
+        if args.format == 'json':
+            # For JSON format, extract just the memory content like main.py
+            flattened_memories = []
+            for memory in memories_list:
+                if isinstance(memory, dict) and "memory" in memory:
+                    flattened_memories.append(memory["memory"])
+                else:
+                    flattened_memories.append(str(memory))
+            
+            print("\nMemories (JSON format):")
+            print(json.dumps(flattened_memories, indent=2))
+        else:
+            # For list format, show detailed information like mem0_memory_manager.py
+            print("\nMemories:")
+            for i, memory in enumerate(memories_list, 1):
+                if isinstance(memory, dict):
+                    print(f"{i}. ID: {memory.get('id', 'unknown')}")
+                    print(f"   Memory: {memory.get('memory', 'N/A')}")
+                    print(f"   User ID: {memory.get('user_id', 'N/A')}")
+                    print(f"   Agent ID: {memory.get('agent_id', 'N/A')}")
+                    print(f"   Created: {memory.get('created_at', 'N/A')}")
+                    print()
+                else:
+                    print(f"{i}. {memory}")
+        
+        # Also show count information
+        if isinstance(memories, dict):
+            print(f"\nTotal memories in response: {len(memories.get('results', []))}")
+            if 'pagination' in memories:
+                pagination = memories['pagination']
+                print(f"Pagination info: {pagination}")
+        
+    except Exception as e:
+        print(f"❌ Error retrieving memories: {e}")
+
 def test_connection(args):
     """Test connection to Qdrant and display cluster info."""
     config = load_env_config()
@@ -295,6 +371,11 @@ def main():
     clear_parser.add_argument('--collection-name', help='Collection name (default from env)')
     clear_parser.add_argument('--force', action='store_true', help='Skip confirmation')
     
+    # Get all memories
+    memories_parser = subparsers.add_parser('get-all-memories', help='Get all stored memories from mem0')
+    memories_parser.add_argument('--format', choices=['json', 'list'], default='list', 
+                                help='Output format (default: list)')
+    
     # Test connection
     subparsers.add_parser('test-connection', help='Test Qdrant connection')
     
@@ -312,6 +393,7 @@ def main():
         'collection-info': collection_info,
         'count-vectors': count_vectors,
         'clear-collection': clear_collection,
+        'get-all-memories': get_all_memories,
         'test-connection': test_connection,
     }
     
